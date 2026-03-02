@@ -1,0 +1,285 @@
+# translation of kcm_kwindesktop.po to Slovak
+# Richard Fric <Richard.Fric@kdemail.net>, 2007, 2009.
+# sparc3 <sparc3@azet.sk>, 2008.
+# Michal Sulek <misurel@gmail.com>, 2010.
+# Roman Paholík <wizzardsk@gmail.com>, 2013, 2014.
+# Matej Mrenica <matejm98mthw@gmail.com>, 2018, 2019, 2021.
+# Ferdinand Galko <galko.ferdinand@gmail.com>, 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: kcm_kwindesktop\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-12-23 00:42+0000\n"
+"PO-Revision-Date: 2023-05-06 17:59+0200\n"
+"Last-Translator: Ferdinand Galko <galko.ferdinand@gmail.com>\n"
+"Language-Team: Slovak <opensuse-translation@opensuse.org>\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 21.12.3\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Michal Šulek"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "misurel@gmail.com"
+
+#: desktopsmodel.cpp:191
+#, kde-format
+msgctxt "A numbered name for virtual desktops"
+msgid "Desktop %1"
+msgid_plural "Desktop %1"
+msgstr[0] "Plocha %1"
+msgstr[1] "Plocha %1"
+msgstr[2] "Plocha %1"
+
+#: desktopsmodel.cpp:479
+#, kde-format
+msgid "There was an error connecting to the compositor."
+msgstr "Nastala chyba pri pripájaní sa ku kompozítoru."
+
+#: desktopsmodel.cpp:678
+#, kde-format
+msgid "There was an error saving the settings to the compositor."
+msgstr "Nastala chyba pri ukladaní nastavení do kompozítora."
+
+#: desktopsmodel.cpp:681
+#, kde-format
+msgid "There was an error requesting information from the compositor."
+msgstr "Nastala chyba pri žiadaní informácií od kompozítora."
+
+#: ui/main.qml:26
+#, fuzzy, kde-format
+#| msgid "Rows:"
+msgctxt "@text:label Number of rows, label associated to a number input field"
+msgid "Rows:"
+msgstr "Riadky:"
+
+#: ui/main.qml:54
+#, fuzzy, kde-format
+#| msgid "New Desktop"
+msgctxt "@action:button"
+msgid "Add Desktop"
+msgstr "Nová pracovná plocha"
+
+#: ui/main.qml:90
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Rename"
+msgctxt "@action:button"
+msgid "Rename"
+msgstr "Premenovať"
+
+#: ui/main.qml:100
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Remove"
+msgstr "Odstrániť"
+
+#: ui/main.qml:119
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Confirm new name"
+msgctxt "@info:tooltip"
+msgid "Apply new name"
+msgstr "Potvrdiť nový názov"
+
+#: ui/main.qml:132
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel rename"
+msgstr ""
+
+#: ui/main.qml:179
+#, kde-format
+msgid ""
+"Virtual desktops have been changed outside this settings application. Saving "
+"now will overwrite the changes."
+msgstr ""
+"Virtuálne plochy boli zmenené inou aplikáciou. Uloženie prepíše tieto zmeny."
+
+#: ui/main.qml:195
+#, kde-format
+msgid "Row %1"
+msgstr "Riadok %1"
+
+#: ui/main.qml:209
+#, kde-format
+msgid "Options:"
+msgstr "Voľby:"
+
+#: ui/main.qml:211
+#, kde-format
+msgid "Navigation wraps around"
+msgstr "Navigovať v plochách dookola"
+
+#: ui/main.qml:229
+#, kde-format
+msgid "Show animation when switching:"
+msgstr "Zobraziť animáciu pri prepínaní:"
+
+#: ui/main.qml:280
+#, kde-format
+msgid "Show on-screen display when switching:"
+msgstr "Zobraziť OSD pri prepínaní:"
+
+#: ui/main.qml:299
+#, kde-format
+msgid "%1 ms"
+msgstr "%1 ms"
+
+#: ui/main.qml:323
+#, kde-format
+msgid "Show desktop layout indicators"
+msgstr "Zobraziť indikátory rozloženia pracovnej plochy"
+
+#~ msgid "1 Row"
+#~ msgid_plural "%1 Rows"
+#~ msgstr[0] "1 riadok"
+#~ msgstr[1] "%1 riadky"
+#~ msgstr[2] "%1 riadkov"
+
+#~ msgctxt "@action:button"
+#~ msgid "Add"
+#~ msgstr "Pridať"
+
+#~ msgid ""
+#~ "This module lets you configure the navigation, number and layout of "
+#~ "virtual desktops."
+#~ msgstr ""
+#~ "Tento modul vám umožňuje konfiguráciu navigácie, počtu a rozloženia "
+#~ "virtuálnych pracovných plôch."
+
+#~ msgid "Virtual Desktops"
+#~ msgstr "Virtuálne pracovné plochy"
+
+#~ msgid "Configure Virtual Desktops"
+#~ msgstr "Nastaviť virtuálne plochy"
+
+#~ msgid "Desktop %1:"
+#~ msgstr "Plocha %1:"
+
+#~ msgid "Here you can enter the name for desktop %1"
+#~ msgstr "Tu môžete zadať názov pre plochu %1"
+
+#~ msgid ""
+#~ "<h1>Multiple Desktops</h1>In this module, you can configure how many "
+#~ "virtual desktops you want and how these should be labeled."
+#~ msgstr ""
+#~ "<h1>Virtuálne pracovné plochy</h1>V tomto module môžete nastaviť počet a "
+#~ "názvy virtuálnych plôch."
+
+#~ msgid "KWin"
+#~ msgstr "KWin"
+
+#~ msgid "Switch to Next Desktop"
+#~ msgstr "Prepnúť na nasledujúcu plochu"
+
+#~ msgid "Switch to Previous Desktop"
+#~ msgstr "Prepnúť na predchádzajúcu plochu"
+
+#~ msgid "Switch One Desktop to the Right"
+#~ msgstr "Prepnúť o jednu plochu doprava"
+
+#~ msgid "Switch One Desktop to the Left"
+#~ msgstr "Prepnúť o jednu plochu doľava"
+
+#~ msgid "Switch One Desktop Up"
+#~ msgstr "Prepnúť o jednu plochu hore"
+
+#~ msgid "Switch One Desktop Down"
+#~ msgstr "Prepnúť o jednu plochu dolu"
+
+#~ msgid "Walk Through Desktops"
+#~ msgstr "Prepínať medzi plochami"
+
+#~ msgid "Walk Through Desktops (Reverse)"
+#~ msgstr "Prepínať medzi plochami (opačne)"
+
+#~ msgid "Walk Through Desktop List"
+#~ msgstr "Prepínať medzi zoznamom plôch"
+
+#~ msgid "Walk Through Desktop List (Reverse)"
+#~ msgstr "Prepínať medzi zoznamom plôch (opačne)"
+
+#~ msgid "Desktop Switching"
+#~ msgstr "Prepínanie plôch"
+
+#~ msgid "Switch to Desktop %1"
+#~ msgstr "Prepnúť na plochu %1"
+
+#~ msgid "No Animation"
+#~ msgstr "Žiadna animácia"
+
+#~ msgid "No suitable Shortcut for Desktop %1 found"
+#~ msgstr "Nenájdená vhodná skratka pre plochu %1"
+
+#~ msgid "Assigned global Shortcut \"%1\" to Desktop %2"
+#~ msgstr "Priradená globálna skratka \"%1\" pre plochu %2"
+
+#~ msgid "Shortcut conflict: Could not set Shortcut %1 for Desktop %2"
+#~ msgstr "Konflikt skratky: Nepodarilo sa nastaviť skratku %1 pre plochu %2"
+
+#~ msgid "KWin development team"
+#~ msgstr "Vývojový tím KWin"
+
+#~ msgid "Layout"
+#~ msgstr "Rozloženie"
+
+#~ msgid ""
+#~ "Here you can set how many virtual desktops you want on your KDE desktop."
+#~ msgstr "Tu môžete nastaviť počet virtuálnych plôch pre KDE."
+
+#~ msgid "&Number of desktops:"
+#~ msgstr "Počet plôch:"
+
+#~ msgid "N&umber of rows:"
+#~ msgstr "Počet riadkov:"
+
+#~ msgid "Desktop Names"
+#~ msgstr "Názvy plôch"
+
+#~ msgid "Switching"
+#~ msgstr "Prepínanie"
+
+#~ msgid ""
+#~ "Enable this option if you want keyboard or active desktop border "
+#~ "navigation beyond the edge of a desktop to take you to the opposite edge "
+#~ "of the new desktop."
+#~ msgstr ""
+#~ "Povoľte túto možnosť, ak chcete, aby navigácia klávesnicou alebo aktívny "
+#~ "okraj plochy vás automaticky presunul na opačný okraj novej plochy."
+
+#~ msgid "Desktop Effect Animation"
+#~ msgstr "Animácia pomocou efektov plochy"
+
+#~ msgid "Animation:"
+#~ msgstr "Animácia:"
+
+#~ msgid "Desktop Switch On-Screen Display"
+#~ msgstr "Zobraziť OSD pri prepínaní plochy"
+
+#~ msgid "Duration:"
+#~ msgstr "Trvanie:"
+
+#~ msgid " msec"
+#~ msgstr " msek"
+
+#~ msgid ""
+#~ "Enabling this option will show a small preview of the desktop layout "
+#~ "indicating the selected desktop."
+#~ msgstr ""
+#~ "Povolením tento možnosti sa bude zobrazovať malý náhľad rozloženia plochy "
+#~ "znázorňujúci vybranú plochu."
+
+#~ msgid "Shortcuts"
+#~ msgstr "Klávesové skratky"
+
+#~ msgid "Show shortcuts for all possible desktops"
+#~ msgstr "Zobraziť skratky pre všetky možné plochy"
