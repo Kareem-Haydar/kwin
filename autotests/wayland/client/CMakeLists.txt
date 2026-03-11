@@ -75,6 +75,7 @@ ecm_mark_as_test(testSlide)
 ########################################################
 # Test Window Management
 ########################################################
+if(KWIN_BUILD_PLASMA_PROTOCOLS)
 set( testWindowmanagement_SRCS
         test_wayland_windowmanagement.cpp
     )
@@ -82,6 +83,7 @@ add_executable(testWindowmanagement ${testWindowmanagement_SRCS})
 target_link_libraries( testWindowmanagement Qt::Test Qt::Gui Plasma::KWaylandClient kwin Wayland::Client)
 add_test(NAME kwayland-testWindowmanagement COMMAND testWindowmanagement)
 ecm_mark_as_test(testWindowmanagement)
+endif()
 
 ########################################################
 # Test DataSource
@@ -113,6 +115,7 @@ ecm_mark_as_test(testServerSideDecoration)
 ########################################################
 # Test PlasmaShell
 ########################################################
+if(KWIN_BUILD_PLASMA_PROTOCOLS)
 set( testPlasmaShell_SRCS
         test_plasmashell.cpp
     )
@@ -120,6 +123,7 @@ add_executable(testPlasmaShell ${testPlasmaShell_SRCS})
 target_link_libraries( testPlasmaShell Qt::Test Qt::Gui Plasma::KWaylandClient kwin Wayland::Client)
 add_test(NAME kwayland-testPlasmaShell COMMAND testPlasmaShell)
 ecm_mark_as_test(testPlasmaShell)
+endif()
 
 ########################################################
 # Test Shadow
@@ -146,6 +150,7 @@ ecm_mark_as_test(testTextInputV2)
 ########################################################
 # Test Error
 ########################################################
+if(KWIN_BUILD_PLASMA_PROTOCOLS)
 set( testError_SRCS
         test_error.cpp
     )
@@ -153,6 +158,7 @@ add_executable(testError ${testError_SRCS})
 target_link_libraries( testError Qt::Test Qt::Gui Plasma::KWaylandClient kwin Wayland::Client)
 add_test(NAME kwayland-testError COMMAND testError)
 ecm_mark_as_test(testError)
+endif()
 
 ########################################################
 # Test XdgForeign
@@ -197,6 +203,8 @@ target_link_libraries( testFilter Qt::Test Qt::Gui Plasma::KWaylandClient kwin W
 add_test(NAME kwayland-testFilter COMMAND testFilter)
 ecm_mark_as_test(testFilter)
 
+if(KWIN_BUILD_PLASMA_PROTOCOLS)
+
 ########################################################
 # Test Appmenu
 ########################################################
@@ -209,7 +217,7 @@ add_test(NAME kwayland-testAppmenu COMMAND testAppmenu)
 ecm_mark_as_test(testAppmenu)
 
 ########################################################
-# Test Appmenu
+# Test ServerSideDecorationPalette
 ########################################################
 set( testServerSideDecorationPalette_SRCS
         test_server_side_decoration_palette.cpp
@@ -245,6 +253,8 @@ add_executable(testPlasmaActivities ${testPlasmaActivities_SRCS})
 target_link_libraries( testPlasmaActivities Qt::Test Qt::Gui Plasma::KWaylandClient kwin)
 add_test(NAME kwayland-testPlasmaActivities COMMAND testPlasmaActivities)
 ecm_mark_as_test(testPlasmaActivities)
+
+endif() # KWIN_BUILD_PLASMA_PROTOCOLS
 
 ########################################################
 # Test XDG Output

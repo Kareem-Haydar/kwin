@@ -8,6 +8,7 @@
 */
 #pragma once
 // KWin
+#include "config-kwin.h"
 #include "effect/globals.h"
 #include <kwin_export.h>
 // Qt includes
@@ -29,7 +30,9 @@ namespace KWin
 {
 
 class Options;
+#if KWIN_BUILD_PLASMA_PROTOCOLS
 class PlasmaVirtualDesktopManagementInterface;
+#endif
 
 /*!
  * \qmltype VirtualDesktop
@@ -181,10 +184,12 @@ public:
      */
     void setRootInfo(NETRootInfo *info);
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     /**
      * @internal, for Wayland case
      */
     void setVirtualDesktopManagement(PlasmaVirtualDesktopManagementInterface *management);
+#endif
 
     /**
      * @internal
@@ -559,7 +564,9 @@ private:
 #if KWIN_BUILD_X11
     NETRootInfo *m_rootInfo;
 #endif
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     PlasmaVirtualDesktopManagementInterface *m_virtualDesktopManagement = nullptr;
+#endif
     KSharedConfig::Ptr m_config;
 
     std::unique_ptr<QAction> m_swipeGestureReleasedY;

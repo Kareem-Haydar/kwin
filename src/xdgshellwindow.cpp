@@ -23,12 +23,14 @@
 #include "tiles/tilemanager.h"
 #include "utils/subsurfacemonitor.h"
 #include "virtualdesktops.h"
-#include "wayland/appmenu.h"
 #include "wayland/output.h"
-#include "wayland/plasmashell.h"
 #include "wayland/seat.h"
 #include "wayland/server_decoration.h"
+#if KWIN_BUILD_PLASMA_PROTOCOLS
+#include "wayland/appmenu.h"
+#include "wayland/plasmashell.h"
 #include "wayland/server_decoration_palette.h"
+#endif
 #include "wayland/surface.h"
 #include "wayland/tablet_v2.h"
 #include "wayland/xdgdecoration_v1.h"
@@ -300,9 +302,11 @@ RectF XdgSurfaceWindow::frameRectToBufferRect(const RectF &rect) const
 
 void XdgSurfaceWindow::handleRoleDestroyed()
 {
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     if (m_plasmaShellSurface) {
         m_plasmaShellSurface->disconnect(this);
     }
+#endif
     m_shellSurface->disconnect(this);
     m_shellSurface->surface()->disconnect(this);
 }
@@ -330,6 +334,7 @@ void XdgSurfaceWindow::destroyWindow()
     unref();
 }
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
 /**
  * \todo This whole plasma shell surface thing doesn't seem right. It turns xdg-toplevel into
  * something completely different! Perhaps plasmashell surfaces need to be implemented via a
@@ -431,6 +436,7 @@ void XdgSurfaceWindow::installPlasmaShellSurface(PlasmaShellSurfaceInterface *sh
         setSkipSwitcher(m_plasmaShellSurface->skipSwitcher());
     });
 }
+#endif // KWIN_BUILD_PLASMA_PROTOCOLS
 
 std::optional<XdgToplevelSessionData> XdgToplevelSessionData::parse(const QVariant &variant)
 {
@@ -588,13 +594,17 @@ void XdgToplevelWindow::handleRoleDestroyed()
     }
 
     destroyWindowManagementInterface();
+    destroyForeignToplevelHandle();
+    destroyExtForeignToplevelListHandle();
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     if (m_appMenuInterface) {
         m_appMenuInterface->disconnect(this);
     }
     if (m_paletteInterface) {
         m_paletteInterface->disconnect(this);
     }
+#endif // KWIN_BUILD_PLASMA_PROTOCOLS
     if (m_xdgDecoration) {
         m_xdgDecoration->disconnect(this);
     }
@@ -737,9 +747,11 @@ bool XdgToplevelWindow::isMinimizable() const
 
 bool XdgToplevelWindow::isPlaceable() const
 {
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     if (m_plasmaShellSurface) {
         return !m_plasmaShellSurface->isPositionSet() && !m_plasmaShellSurface->wantsOpenUnderCursor();
     }
+#endif // KWIN_BUILD_PLASMA_PROTOCOLS
     return true;
 }
 
@@ -1011,6 +1023,7 @@ bool XdgToplevelWindow::wantsInput() const
 
 bool XdgToplevelWindow::acceptsFocus() const
 {
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     if (m_plasmaShellSurface) {
         if (m_plasmaShellSurface->role() == PlasmaShellSurfaceInterface::Role::OnScreenDisplay || m_plasmaShellSurface->role() == PlasmaShellSurfaceInterface::Role::ToolTip) {
             return false;
@@ -1024,6 +1037,7 @@ bool XdgToplevelWindow::acceptsFocus() const
             break;
         }
     }
+#endif // KWIN_BUILD_PLASMA_PROTOCOLS
     return !isDeleted() && readyForPainting();
 }
 
@@ -1473,6 +1487,8 @@ void XdgToplevelWindow::initialize()
     updateCapabilities();
     updateIcon();
     setupWindowManagementInterface();
+    setupForeignToplevelHandle();
+    setupExtForeignToplevelListHandle();
 
     m_isInitialized = true;
 }
@@ -1536,12 +1552,15 @@ void XdgToplevelWindow::updateIcon()
 
 QString XdgToplevelWindow::preferredColorScheme() const
 {
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     if (m_paletteInterface) {
         return rules()->checkDecoColor(m_paletteInterface->palette());
     }
+#endif // KWIN_BUILD_PLASMA_PROTOCOLS
     return rules()->checkDecoColor(QString());
 }
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
 void XdgToplevelWindow::installAppMenu(AppMenuInterface *appMenu)
 {
     m_appMenuInterface = appMenu;
@@ -1553,6 +1572,7 @@ void XdgToplevelWindow::installAppMenu(AppMenuInterface *appMenu)
     connect(m_appMenuInterface, &AppMenuInterface::addressChanged, this, updateMenu);
     updateMenu(appMenu->address());
 }
+#endif // KWIN_BUILD_PLASMA_PROTOCOLS
 
 DecorationMode XdgToplevelWindow::preferredDecorationMode() const
 {
@@ -1707,6 +1727,7 @@ void XdgToplevelWindow::installServerDecoration(ServerSideDecorationInterface *d
     });
 }
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
 void XdgToplevelWindow::installPalette(ServerSideDecorationPaletteInterface *palette)
 {
     m_paletteInterface = palette;
@@ -1717,6 +1738,7 @@ void XdgToplevelWindow::installPalette(ServerSideDecorationPaletteInterface *pal
             this, &XdgToplevelWindow::updateColorScheme);
     updateColorScheme();
 }
+#endif // KWIN_BUILD_PLASMA_PROTOCOLS
 
 void XdgToplevelWindow::installXdgDialogV1(XdgDialogV1Interface *dialog)
 {
@@ -1922,9 +1944,12 @@ void XdgPopupWindow::updateRelativePlacement()
     const RectF bounds = workspace()->clientArea(transientFor()->isFullScreen() ? FullScreenArea : PlacementArea, transientFor()).translated(-parentPosition);
     const XdgPositioner positioner = m_shellSurface->positioner();
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     if (m_plasmaShellSurface && m_plasmaShellSurface->isPositionSet()) {
         m_relativePlacement = RectF(m_plasmaShellSurface->position(), positioner.size()).translated(-parentPosition);
-    } else {
+    } else
+#endif // KWIN_BUILD_PLASMA_PROTOCOLS
+    {
         m_relativePlacement = positioner.placement(bounds);
     }
 }

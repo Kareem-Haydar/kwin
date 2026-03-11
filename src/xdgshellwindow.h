@@ -27,11 +27,13 @@ class DecorationState;
 namespace KWin
 {
 
-class AppMenuInterface;
 class KillPrompt;
-class PlasmaShellSurfaceInterface;
 class ServerSideDecorationInterface;
+#if KWIN_BUILD_PLASMA_PROTOCOLS
+class AppMenuInterface;
+class PlasmaShellSurfaceInterface;
 class ServerSideDecorationPaletteInterface;
+#endif
 class XdgDialogV1Interface;
 class XdgToplevelDecorationV1Interface;
 class LogicalOutput;
@@ -68,7 +70,9 @@ public:
     RectF frameRectToBufferRect(const RectF &rect) const override;
     void destroyWindow() override;
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     void installPlasmaShellSurface(PlasmaShellSurfaceInterface *shellSurface);
+#endif
 
 protected:
     void moveResizeInternal(const RectF &rect, MoveResizeMode mode) override;
@@ -82,7 +86,9 @@ protected:
     void scheduleConfigure();
     void sendConfigure();
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     QPointer<PlasmaShellSurfaceInterface> m_plasmaShellSurface;
+#endif
 
     WindowType m_windowType = WindowType::Normal;
     Gravity m_nextGravity = Gravity::None;
@@ -182,9 +188,11 @@ public:
     void closeWindow() override;
     void maximize(MaximizeMode mode, const RectF &restore = RectF()) override;
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     void installAppMenu(AppMenuInterface *appMenu);
-    void installServerDecoration(ServerSideDecorationInterface *decoration);
     void installPalette(ServerSideDecorationPaletteInterface *palette);
+#endif
+    void installServerDecoration(ServerSideDecorationInterface *decoration);
     void installXdgDecoration(XdgToplevelDecorationV1Interface *decoration);
     void installXdgDialogV1(XdgDialogV1Interface *dialog);
 
@@ -254,8 +262,10 @@ private:
     void updateCapabilities();
     void updateIcon();
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     QPointer<AppMenuInterface> m_appMenuInterface;
     QPointer<ServerSideDecorationPaletteInterface> m_paletteInterface;
+#endif
     QPointer<ServerSideDecorationInterface> m_serverDecoration;
     QPointer<XdgToplevelDecorationV1Interface> m_xdgDecoration;
     QPointer<XdgDialogV1Interface> m_xdgDialog;

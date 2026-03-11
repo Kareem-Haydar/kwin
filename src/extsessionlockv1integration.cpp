@@ -3,11 +3,10 @@
 
     SPDX-License-Identifier: GPL-2.0-or-later
 */
+#include "extsessionlockv1integration.h"
 #include "core/backendoutput.h"
 #include "core/output.h"
 #include "core/renderloop.h"
-#include "extsessionlockv1dbusinterface.h"
-#include "extsessionlockv1integration.h"
 #include "extsessionlockv1window.h"
 #include "wayland/extsessionlock_v1.h"
 #include "wayland/output.h"
@@ -77,8 +76,6 @@ ExtSessionLockV1Integration::ExtSessionLockV1Integration(QObject *parent)
     auto *manager = new ExtSessionLockManagerV1Interface(waylandServer()->display(), this);
     connect(manager, &ExtSessionLockManagerV1Interface::lockRequested,
             this, &ExtSessionLockV1Integration::handleLockRequested);
-
-    new ExtSessionLockV1DBusInterface(this, this);
 }
 
 bool ExtSessionLockV1Integration::isLocked() const

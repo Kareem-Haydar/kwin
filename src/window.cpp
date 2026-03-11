@@ -35,8 +35,12 @@
 #include "tiles/tilemanager.h"
 #include "useractions.h"
 #include "virtualdesktops.h"
+#include "wayland/extforeigntoplevellist_v1.h"
+#include "wayland/foreigntoplevelmanagerv1.h"
 #include "wayland/output.h"
+#if KWIN_BUILD_PLASMA_PROTOCOLS
 #include "wayland/plasmawindowmanagement.h"
+#endif
 #include "wayland/surface.h"
 #include "wayland_server.h"
 #include "workspace.h"
@@ -717,6 +721,7 @@ void Window::setDesktops(QList<VirtualDesktop *> desktops)
 
     m_desktops = desktops;
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     if (windowManagementInterface()) {
         if (m_desktops.isEmpty()) {
             windowManagementInterface()->setOnAllDesktops(true);
@@ -735,6 +740,7 @@ void Window::setDesktops(QList<VirtualDesktop *> desktops)
             }
         }
     }
+#endif
 
     auto transients_stacking_order = workspace()->ensureStackingOrder(transients());
     for (auto it = transients_stacking_order.constBegin(); it != transients_stacking_order.constEnd(); ++it) {
@@ -1724,6 +1730,7 @@ bool Window::hasStrut() const
     return false;
 }
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
 void Window::setupWindowManagementInterface()
 {
     if (m_windowManagementInterface) {
@@ -1923,6 +1930,127 @@ void Window::destroyWindowManagementInterface()
 {
     delete m_windowManagementInterface;
     m_windowManagementInterface = nullptr;
+}
+#else
+void Window::setupWindowManagementInterface()
+{
+}
+void Window::destroyWindowManagementInterface()
+{
+}
+#endif
+
+void Window::setupForeignToplevelHandle()
+{
+    if (m_foreignToplevelHandle) {
+        return;
+    }
+    if (!waylandServer() || !waylandServer()->foreignToplevelManager()) {
+        return;
+    }
+
+    m_foreignToplevelHandle = waylandServer()->foreignToplevelManager()->createHandle(this);
+
+    m_foreignToplevelHandle->setTitle(caption());
+    m_foreignToplevelHandle->setAppId(m_desktopFileName.isEmpty() ? resourceClass() : m_desktopFileName);
+    m_foreignToplevelHandle->setActive(isActive());
+    m_foreignToplevelHandle->setMinimized(isMinimized());
+    m_foreignToplevelHandle->setMaximized(maximizeMode() == MaximizeFull);
+    m_foreignToplevelHandle->setFullscreen(isFullScreen());
+
+    connect(this, &Window::captionChanged, m_foreignToplevelHandle, [this]() {
+        m_foreignToplevelHandle->setTitle(caption());
+    });
+    connect(this, &Window::desktopFileNameChanged, m_foreignToplevelHandle, [this]() {
+        m_foreignToplevelHandle->setAppId(m_desktopFileName.isEmpty() ? resourceClass() : m_desktopFileName);
+    });
+    connect(this, &Window::activeChanged, m_foreignToplevelHandle, [this]() {
+        m_foreignToplevelHandle->setActive(isActive());
+    });
+    connect(this, &Window::minimizedChanged, m_foreignToplevelHandle, [this]() {
+        m_foreignToplevelHandle->setMinimized(isMinimized());
+    });
+    connect(this, &Window::maximizedChanged, m_foreignToplevelHandle, [this]() {
+        m_foreignToplevelHandle->setMaximized(maximizeMode() == MaximizeFull);
+    });
+    connect(this, &Window::fullScreenChanged, m_foreignToplevelHandle, [this]() {
+        m_foreignToplevelHandle->setFullscreen(isFullScreen());
+    });
+    connect(this, &Window::transientChanged, m_foreignToplevelHandle, [this]() {
+        auto *parent = transientFor() ? transientFor()->m_foreignToplevelHandle : nullptr;
+        m_foreignToplevelHandle->setParentHandle(parent);
+    });
+
+    connect(m_foreignToplevelHandle, &ForeignToplevelHandleV1Interface::maximizeRequested,
+            this, [this]() {
+        maximize(MaximizeFull);
+    });
+    connect(m_foreignToplevelHandle, &ForeignToplevelHandleV1Interface::unmaximizeRequested,
+            this, [this]() {
+        maximize(MaximizeRestore);
+    });
+    connect(m_foreignToplevelHandle, &ForeignToplevelHandleV1Interface::minimizeRequested,
+            this, [this]() {
+        setMinimized(true);
+    });
+    connect(m_foreignToplevelHandle, &ForeignToplevelHandleV1Interface::unminimizeRequested,
+            this, [this]() {
+        setMinimized(false);
+    });
+    connect(m_foreignToplevelHandle, &ForeignToplevelHandleV1Interface::fullscreenRequested,
+            this, [this](OutputInterface *) {
+        setFullScreen(true);
+    });
+    connect(m_foreignToplevelHandle, &ForeignToplevelHandleV1Interface::unfullscreenRequested,
+            this, [this]() {
+        setFullScreen(false);
+    });
+    connect(m_foreignToplevelHandle, &ForeignToplevelHandleV1Interface::activateRequested,
+            this, [this]() {
+        workspace()->activateWindow(this);
+    });
+    connect(m_foreignToplevelHandle, &ForeignToplevelHandleV1Interface::closeRequested,
+            this, &Window::closeWindow);
+}
+
+void Window::destroyForeignToplevelHandle()
+{
+    if (!m_foreignToplevelHandle) {
+        return;
+    }
+    m_foreignToplevelHandle->sendClosed();
+    m_foreignToplevelHandle = nullptr;
+}
+
+void Window::setupExtForeignToplevelListHandle()
+{
+    if (m_extForeignToplevelListHandle) {
+        return;
+    }
+    if (!waylandServer() || !waylandServer()->extForeignToplevelList()) {
+        return;
+    }
+
+    m_extForeignToplevelListHandle = waylandServer()->extForeignToplevelList()->createHandle(this);
+
+    m_extForeignToplevelListHandle->setTitle(caption());
+    m_extForeignToplevelListHandle->setAppId(m_desktopFileName.isEmpty() ? resourceClass() : m_desktopFileName);
+
+    connect(this, &Window::captionChanged, m_extForeignToplevelListHandle, [this]() {
+        m_extForeignToplevelListHandle->setTitle(caption());
+    });
+    connect(this, &Window::desktopFileNameChanged, m_extForeignToplevelListHandle, [this]() {
+        m_extForeignToplevelListHandle->setAppId(m_desktopFileName.isEmpty() ? resourceClass() : m_desktopFileName);
+    });
+}
+
+void Window::destroyExtForeignToplevelListHandle()
+{
+    if (!m_extForeignToplevelListHandle) {
+        return;
+    }
+    m_extForeignToplevelListHandle->sendClosed();
+    m_extForeignToplevelListHandle = nullptr;
 }
 
 std::optional<Options::MouseCommand> Window::getMousePressCommand(Qt::MouseButton button) const
@@ -2908,6 +3036,7 @@ void Window::pointerLeaveEvent()
 
 RectF Window::iconGeometry() const
 {
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     if (!windowManagementInterface()) {
         return RectF();
     }
@@ -2941,6 +3070,9 @@ RectF Window::iconGeometry() const
         return RectF();
     }
     return candidateGeom.translated(candidatePanel->pos());
+#else
+    return RectF();
+#endif
 }
 
 RectF Window::virtualKeyboardGeometry() const

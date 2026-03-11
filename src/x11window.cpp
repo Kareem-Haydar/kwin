@@ -191,6 +191,8 @@ bool X11Window::hasScheduledRelease() const
 void X11Window::releaseWindow(bool on_shutdown)
 {
     destroyWindowManagementInterface();
+    destroyForeignToplevelHandle();
+    destroyExtForeignToplevelListHandle();
 
     markAsDeleted();
     Q_EMIT closed();
@@ -258,6 +260,8 @@ void X11Window::releaseWindow(bool on_shutdown)
 void X11Window::destroyWindow()
 {
     destroyWindowManagementInterface();
+    destroyForeignToplevelHandle();
+    destroyExtForeignToplevelListHandle();
 
     markAsDeleted();
     Q_EMIT closed();
@@ -922,6 +926,8 @@ bool X11Window::manage(xcb_window_t w, bool isMapped)
     updateWindowRules(Rules::All); // Was blocked while !isManaged()
 
     setupWindowManagementInterface();
+    setupForeignToplevelHandle();
+    setupExtForeignToplevelListHandle();
 
     connect(kwinApp(), &Application::xwaylandScaleChanged, this, &X11Window::handleXwaylandScaleChanged);
     return true;

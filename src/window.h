@@ -45,7 +45,12 @@ class Decoration;
 
 namespace KWin
 {
+#if KWIN_BUILD_PLASMA_PROTOCOLS
 class PlasmaWindowInterface;
+#endif
+class ExtForeignToplevelHandleV1Interface;
+class ExtForeignToplevelListV1Interface;
+class ForeignToplevelHandleV1Interface;
 class SurfaceInterface;
 class Group;
 class LogicalOutput;
@@ -1372,10 +1377,12 @@ public:
     /**
      * Return window management interface
      */
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     PlasmaWindowInterface *windowManagementInterface() const
     {
         return m_windowManagementInterface;
     }
+#endif
 
     /**
      * Sets the last user usage serial of the surface as @p serial
@@ -1610,6 +1617,10 @@ protected:
 
     void setupWindowManagementInterface();
     void destroyWindowManagementInterface();
+    void setupForeignToplevelHandle();
+    void destroyForeignToplevelHandle();
+    void setupExtForeignToplevelListHandle();
+    void destroyExtForeignToplevelListHandle();
     void updateColorScheme();
     void ensurePalette();
     void handlePaletteChange();
@@ -1863,7 +1874,11 @@ protected:
     static QHash<QString, std::weak_ptr<Decoration::DecorationPalette>> s_palettes;
     static std::shared_ptr<Decoration::DecorationPalette> s_defaultPalette;
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     PlasmaWindowInterface *m_windowManagementInterface = nullptr;
+#endif
+    ForeignToplevelHandleV1Interface *m_foreignToplevelHandle = nullptr;
+    ExtForeignToplevelHandleV1Interface *m_extForeignToplevelListHandle = nullptr;
 
     Window *m_transientFor = nullptr;
     QList<Window *> m_transients;

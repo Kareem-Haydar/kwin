@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "config-kwin.h"
 #include "kwin_export.h"
 
 #include "utils/serial.h"
@@ -23,7 +24,9 @@ class SeatInterface;
 class ClientConnection;
 class SurfaceInterface;
 class XdgActivationV1Interface;
+#if KWIN_BUILD_PLASMA_PROTOCOLS
 class PlasmaWindowActivationInterface;
+#endif
 
 class KWIN_EXPORT XdgActivationV1Integration : public QObject
 {
@@ -43,7 +46,9 @@ private:
 
     QString m_lastToken;
     QString m_lastTokenAppId;
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     std::unique_ptr<PlasmaWindowActivationInterface> m_activation;
+#endif
 };
 
 }

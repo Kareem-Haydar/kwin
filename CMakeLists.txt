@@ -56,6 +56,7 @@ option(KWIN_BUILD_TABBOX "Enable building of KWin Tabbox functionality" ON)
 option(KWIN_BUILD_X11 "Enable building X11 common code and Xwayland support" ON)
 option(KWIN_BUILD_GLOBALSHORTCUTS "Enable building of KWin with global shortcuts support" ON)
 option(KWIN_BUILD_RUNNERS "Enable building of KWin with krunner support" ON)
+option(KWIN_BUILD_PLASMA_PROTOCOLS "Enable building of Plasma-specific Wayland protocol support" OFF)
 
 find_package(Qt6 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Concurrent
@@ -215,10 +216,14 @@ set_package_properties(WaylandProtocols PROPERTIES
     URL "https://gitlab.freedesktop.org/wayland/wayland-protocols/"
 )
 
-find_package(PlasmaWaylandProtocols 1.20.0 CONFIG)
+# PlasmaWaylandProtocols is always required: it provides KDE-specific protocols
+# (dpms, output-management, shadow, screencast, etc.) used unconditionally by KWin.
+# The KWIN_BUILD_PLASMA_PROTOCOLS flag only gates the Plasma shell/window-management
+# subset of those protocols.
+find_package(PlasmaWaylandProtocols 1.20.0 CONFIG REQUIRED)
 set_package_properties(PlasmaWaylandProtocols PROPERTIES
     TYPE REQUIRED
-    PURPOSE "Collection of Plasma-specific Wayland protocols"
+    PURPOSE "KDE Wayland protocol extensions (output management, dpms, screencast, shadow, etc.)"
     URL "https://invent.kde.org/libraries/plasma-wayland-protocols/"
 )
 

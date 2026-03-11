@@ -12,7 +12,6 @@ ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
     FILES
         ${Wayland_DATADIR}/wayland.xml
 
-        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/appmenu.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/dpms.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/fake-input.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/idle.xml
@@ -23,11 +22,6 @@ ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/kde-output-order-v1.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/kde-screen-edge-v1.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/keystate.xml
-        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/org-kde-plasma-virtual-desktop.xml
-        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/plasma-shell.xml
-        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/plasma-window-management.xml
-        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/server-decoration-palette.xml
-        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/server-decoration.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/shadow.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/slide.xml
         ${PLASMA_WAYLAND_PROTOCOLS_DIR}/text-input-unstable-v2.xml
@@ -35,6 +29,7 @@ ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
 
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/drm.xml
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/frog-color-management-v1.xml
+        ${PROJECT_SOURCE_DIR}/src/wayland/protocols/wlr-foreign-toplevel-management-unstable-v1.xml
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/wlr-layer-shell-unstable-v1.xml
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/xx-pip-v1.xml
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/xx-session-management-v1.xml
@@ -51,7 +46,9 @@ ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
         ${WaylandProtocols_DATADIR}/staging/drm-lease/drm-lease-v1.xml
         ${WaylandProtocols_DATADIR}/staging/ext-background-effect/ext-background-effect-v1.xml
         ${WaylandProtocols_DATADIR}/staging/ext-data-control/ext-data-control-v1.xml
+        ${WaylandProtocols_DATADIR}/staging/ext-foreign-toplevel-list/ext-foreign-toplevel-list-v1.xml
         ${WaylandProtocols_DATADIR}/staging/ext-idle-notify/ext-idle-notify-v1.xml
+        ${WaylandProtocols_DATADIR}/staging/ext-workspace/ext-workspace-v1.xml
         ${WaylandProtocols_DATADIR}/staging/fifo/fifo-v1.xml
         ${WaylandProtocols_DATADIR}/staging/fractional-scale/fractional-scale-v1.xml
         ${WaylandProtocols_DATADIR}/staging/linux-drm-syncobj/linux-drm-syncobj-v1.xml
@@ -83,11 +80,28 @@ ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
         ${WaylandProtocols_DATADIR}/unstable/xwayland-keyboard-grab/xwayland-keyboard-grab-unstable-v1.xml
 )
 
+ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
+    PRIVATE_CODE
+    FILES
+        ${PLASMA_WAYLAND_PROTOCOLS_DIR}/server-decoration.xml
+)
+
+if(KWIN_BUILD_PLASMA_PROTOCOLS)
+    ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
+        PRIVATE_CODE
+        FILES
+            ${PLASMA_WAYLAND_PROTOCOLS_DIR}/appmenu.xml
+            ${PLASMA_WAYLAND_PROTOCOLS_DIR}/org-kde-plasma-virtual-desktop.xml
+            ${PLASMA_WAYLAND_PROTOCOLS_DIR}/plasma-shell.xml
+            ${PLASMA_WAYLAND_PROTOCOLS_DIR}/plasma-window-management.xml
+            ${PLASMA_WAYLAND_PROTOCOLS_DIR}/server-decoration-palette.xml
+    )
+endif()
+
 target_sources(kwin PRIVATE
     abstract_data_source.cpp
     abstract_drop_handler.cpp
     alphamodifier_v1.cpp
-    appmenu.cpp
     backgroundeffect_v1.cpp
     clientconnection.cpp
     colormanagement_v1.cpp
@@ -108,9 +122,12 @@ target_sources(kwin PRIVATE
     drmclientbuffer.cpp
     drmlease_v1.cpp
     externalbrightness_v1.cpp
+    extforeigntoplevellist_v1.cpp
     extsessionlock_v1.cpp
+    extworkspace_v1.cpp
     fifo_v1.cpp
     filtered_display.cpp
+    foreigntoplevelmanagerv1.cpp
     fixes.cpp
     fractionalscale_v1.cpp
     frog_colormanagement_v1.cpp
@@ -129,9 +146,6 @@ target_sources(kwin PRIVATE
     output_order_v1.cpp
     outputdevice_v2.cpp
     outputmanagement_v2.cpp
-    plasmashell.cpp
-    plasmavirtualdesktop.cpp
-    plasmawindowmanagement.cpp
     pointer.cpp
     pointerconstraints_v1.cpp
     pointergestures_v1.cpp
@@ -147,8 +161,6 @@ target_sources(kwin PRIVATE
     screenedge_v1.cpp
     seat.cpp
     securitycontext_v1.cpp
-    server_decoration.cpp
-    server_decoration_palette.cpp
     shadow.cpp
     shmclientbuffer.cpp
     singlepixelbuffer.cpp
@@ -180,9 +192,22 @@ target_sources(kwin PRIVATE
     xxpip_v1.cpp
 )
 
+target_sources(kwin PRIVATE
+    server_decoration.cpp
+)
+
+if(KWIN_BUILD_PLASMA_PROTOCOLS)
+    target_sources(kwin PRIVATE
+        appmenu.cpp
+        plasmashell.cpp
+        plasmavirtualdesktop.cpp
+        plasmawindowmanagement.cpp
+        server_decoration_palette.cpp
+    )
+endif()
+
 install(FILES
     alphamodifier_v1.h
-    appmenu.h
     backgroundeffect_v1.h
     clientconnection.h
     colormanagement_v1.h
@@ -219,9 +244,6 @@ install(FILES
     output_order_v1.h
     outputdevice_v2.h
     outputmanagement_v2.h
-    plasmashell.h
-    plasmavirtualdesktop.h
-    plasmawindowmanagement.h
     pointer.h
     pointerconstraints_v1.h
     pointergestures_v1.h
@@ -238,7 +260,6 @@ install(FILES
     seat.h
     securitycontext_v1.h
     server_decoration.h
-    server_decoration_palette.h
     shadow.h
     singlepixelbuffer.h
     slide.h
@@ -291,3 +312,13 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/wayland-xdg-toplevel-tag-v1-server-protocol.h
 
     DESTINATION ${KDE_INSTALL_INCLUDEDIR}/kwin/wayland COMPONENT Devel)
+
+if(KWIN_BUILD_PLASMA_PROTOCOLS)
+    install(FILES
+        appmenu.h
+        plasmashell.h
+        plasmavirtualdesktop.h
+        plasmawindowmanagement.h
+        server_decoration_palette.h
+        DESTINATION ${KDE_INSTALL_INCLUDEDIR}/kwin/wayland COMPONENT Devel)
+endif()

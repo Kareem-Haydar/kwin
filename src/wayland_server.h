@@ -17,7 +17,6 @@
 namespace KWin
 {
 
-class AppMenuManagerInterface;
 class ClientConnection;
 class CompositorInterface;
 class Display;
@@ -28,13 +27,19 @@ class InputMethodV1Interface;
 class SeatInterface;
 class DataDeviceManagerInterface;
 class ServerSideDecorationManagerInterface;
-class ServerSideDecorationPaletteManagerInterface;
 class SurfaceInterface;
 class OutputInterface;
+#if KWIN_BUILD_PLASMA_PROTOCOLS
+class AppMenuManagerInterface;
 class PlasmaShellInterface;
 class PlasmaWindowActivationFeedbackInterface;
 class PlasmaVirtualDesktopManagementInterface;
 class PlasmaWindowManagementInterface;
+class ServerSideDecorationPaletteManagerInterface;
+#endif
+class ForeignToplevelManagerV1Interface;
+class ExtForeignToplevelListV1Interface;
+class ExtWorkspaceManagerV1Interface;
 class OutputDeviceV2Interface;
 class OutputManagementV2Interface;
 class XdgExportedSurface;
@@ -105,6 +110,7 @@ public:
     {
         return m_dataDeviceManager;
     }
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     PlasmaWindowActivationFeedbackInterface *plasmaActivationFeedback() const
     {
         return m_plasmaActivationFeedback;
@@ -117,9 +123,22 @@ public:
     {
         return m_windowManagement;
     }
+#endif
     ServerSideDecorationManagerInterface *decorationManager() const
     {
         return m_decorationManager;
+    }
+    ForeignToplevelManagerV1Interface *foreignToplevelManager() const
+    {
+        return m_foreignToplevelManager;
+    }
+    ExtForeignToplevelListV1Interface *extForeignToplevelList() const
+    {
+        return m_extForeignToplevelList;
+    }
+    ExtWorkspaceManagerV1Interface *extWorkspaceManager() const
+    {
+        return m_extWorkspaceManager;
     }
     XdgOutputManagerV1Interface *xdgOutputManagerV1() const
     {
@@ -271,14 +290,19 @@ private:
     SeatInterface *m_seat = nullptr;
     TabletManagerV2Interface *m_tabletManagerV2 = nullptr;
     DataDeviceManagerInterface *m_dataDeviceManager = nullptr;
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     PlasmaShellInterface *m_plasmaShell = nullptr;
     PlasmaWindowActivationFeedbackInterface *m_plasmaActivationFeedback = nullptr;
     PlasmaWindowManagementInterface *m_windowManagement = nullptr;
     PlasmaVirtualDesktopManagementInterface *m_virtualDesktopManagement = nullptr;
-    ServerSideDecorationManagerInterface *m_decorationManager = nullptr;
-    OutputManagementV2Interface *m_outputManagement = nullptr;
     AppMenuManagerInterface *m_appMenuManager = nullptr;
     ServerSideDecorationPaletteManagerInterface *m_paletteManager = nullptr;
+#endif
+    ForeignToplevelManagerV1Interface *m_foreignToplevelManager = nullptr;
+    ExtForeignToplevelListV1Interface *m_extForeignToplevelList = nullptr;
+    ExtWorkspaceManagerV1Interface *m_extWorkspaceManager = nullptr;
+    ServerSideDecorationManagerInterface *m_decorationManager = nullptr;
+    OutputManagementV2Interface *m_outputManagement = nullptr;
     IdleInterface *m_idle = nullptr;
     XdgOutputManagerV1Interface *m_xdgOutputManagerV1 = nullptr;
     XdgDecorationManagerV1Interface *m_xdgDecorationManagerV1 = nullptr;

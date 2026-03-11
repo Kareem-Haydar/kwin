@@ -27,7 +27,6 @@
 #include "utils/serviceutils.h"
 #include "virtualdesktops.h"
 #include "wayland/alphamodifier_v1.h"
-#include "wayland/appmenu.h"
 #include "wayland/backgroundeffect_v1.h"
 #include "wayland/clientconnection.h"
 #include "wayland/colormanagement_v1.h"
@@ -42,9 +41,12 @@
 #include "wayland/drmclientbuffer.h"
 #include "wayland/drmlease_v1.h"
 #include "wayland/externalbrightness_v1.h"
+#include "wayland/extforeigntoplevellist_v1.h"
+#include "wayland/extworkspace_v1.h"
 #include "wayland/fifo_v1.h"
 #include "wayland/filtered_display.h"
 #include "wayland/fixes.h"
+#include "wayland/foreigntoplevelmanagerv1.h"
 #include "wayland/fractionalscale_v1.h"
 #include "wayland/frog_colormanagement_v1.h"
 #include "wayland/idle.h"
@@ -60,9 +62,14 @@
 #include "wayland/output_order_v1.h"
 #include "wayland/outputdevice_v2.h"
 #include "wayland/outputmanagement_v2.h"
+#include "wayland/server_decoration.h"
+#if KWIN_BUILD_PLASMA_PROTOCOLS
+#include "wayland/appmenu.h"
 #include "wayland/plasmashell.h"
 #include "wayland/plasmavirtualdesktop.h"
 #include "wayland/plasmawindowmanagement.h"
+#include "wayland/server_decoration_palette.h"
+#endif
 #include "wayland/pointerconstraints_v1.h"
 #include "wayland/pointergestures_v1.h"
 #include "wayland/pointerwarp_v1.h"
@@ -72,8 +79,6 @@
 #include "wayland/screenedge_v1.h"
 #include "wayland/seat.h"
 #include "wayland/securitycontext_v1.h"
-#include "wayland/server_decoration.h"
-#include "wayland/server_decoration_palette.h"
 #include "wayland/shadow.h"
 #include "wayland/singlepixelbuffer.h"
 #include "wayland/subcompositor.h"
@@ -265,21 +270,25 @@ void WaylandServer::registerXdgToplevelWindow(XdgToplevelWindow *window)
 
     registerWindow(window);
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     if (auto shellSurface = PlasmaShellSurfaceInterface::get(surface)) {
         window->installPlasmaShellSurface(shellSurface);
     }
+#endif
     if (auto decoration = ServerSideDecorationInterface::get(surface)) {
         window->installServerDecoration(decoration);
     }
     if (auto decoration = XdgToplevelDecorationV1Interface::get(window->shellSurface())) {
         window->installXdgDecoration(decoration);
     }
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     if (auto menu = m_appMenuManager->appMenuForSurface(surface)) {
         window->installAppMenu(menu);
     }
     if (auto palette = m_paletteManager->paletteForSurface(surface)) {
         window->installPalette(palette);
     }
+#endif
     if (auto dialog = m_xdgDialogWm->dialogForToplevel(window->shellSurface())) {
         window->installXdgDialogV1(dialog);
     }
@@ -297,9 +306,11 @@ void WaylandServer::registerXdgGenericWindow(Window *window)
     }
     if (auto popup = qobject_cast<XdgPopupWindow *>(window)) {
         registerWindow(popup);
+#if KWIN_BUILD_PLASMA_PROTOCOLS
         if (auto shellSurface = PlasmaShellSurfaceInterface::get(popup->surface())) {
             popup->installPlasmaShellSurface(shellSurface);
         }
+#endif
         return;
     }
     qCDebug(KWIN_CORE) << "Received invalid xdg shell window:" << window->surface();
@@ -324,14 +335,22 @@ void WaylandServer::handleOutputEnabled(LogicalOutput *output)
     if (!output->isPlaceholder()) {
         auto waylandOutput = new OutputInterface(waylandServer()->display(), output);
         m_xdgOutputManagerV1->offer(waylandOutput);
-
         m_waylandOutputs.insert(output, waylandOutput);
+
+        if (m_extWorkspaceManager) {
+            m_extWorkspaceManager->outputAdded(waylandOutput);
+            m_extWorkspaceManager->done();
+        }
     }
 }
 
 void WaylandServer::handleOutputDisabled(LogicalOutput *output)
 {
     if (auto waylandOutput = m_waylandOutputs.take(output)) {
+        if (m_extWorkspaceManager) {
+            m_extWorkspaceManager->outputRemoved(waylandOutput);
+            m_extWorkspaceManager->done();
+        }
         waylandOutput->remove();
     }
 }
@@ -420,6 +439,10 @@ bool WaylandServer::init()
     new IdleInhibition(m_idle);
     new IdleInhibitManagerV1Interface(m_display, m_display);
     new IdleNotifyV1Interface(m_display, m_display);
+    m_foreignToplevelManager = new ForeignToplevelManagerV1Interface(m_display, m_display);
+    m_extForeignToplevelList = new ExtForeignToplevelListV1Interface(m_display, m_display);
+    m_extWorkspaceManager = new ExtWorkspaceManagerV1Interface(m_display, m_display);
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     m_plasmaShell = new PlasmaShellInterface(m_display, m_display);
     connect(m_plasmaShell, &PlasmaShellInterface::surfaceCreated, this, [this](PlasmaShellSurfaceInterface *surface) {
         if (XdgSurfaceWindow *window = findXdgSurfaceWindow(surface->surface())) {
@@ -467,6 +490,7 @@ bool WaylandServer::init()
     m_windowManagement->setPlasmaVirtualDesktopManagementInterface(m_virtualDesktopManagement);
 
     m_plasmaActivationFeedback = new PlasmaWindowActivationFeedbackInterface(m_display, m_display);
+#endif
 
     new ShadowManagerInterface(m_display, m_display);
     new DpmsManagerInterface(m_display, m_display);
@@ -603,6 +627,7 @@ void WaylandServer::initWorkspace()
 
     new KeyStateInterface(m_display, m_display);
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     VirtualDesktopManager::self()->setVirtualDesktopManagement(m_virtualDesktopManagement);
 
     if (m_windowManagement) {
@@ -627,6 +652,7 @@ void WaylandServer::initWorkspace()
             connect(workspace(), &Workspace::stackingOrderChanged, this, f);
         });
     }
+#endif
 
     const auto availableOutputs = kwinApp()->outputBackend()->outputs();
     for (BackendOutput *output : availableOutputs) {
@@ -655,6 +681,113 @@ void WaylandServer::initWorkspace()
     connect(workspace(), &Workspace::outputOrderChanged, m_outputOrder, [this]() {
         m_outputOrder->setOutputOrder(workspace()->outputOrder());
     });
+
+    // ── ext-workspace-v1 ──────────────────────────────────────────────────────
+    {
+        auto *vdm = VirtualDesktopManager::self();
+        auto *wsm = m_extWorkspaceManager;
+
+        // Shared map so all lambdas below see the same desktop→handle state.
+        using WsMap = QHash<VirtualDesktop *, ExtWorkspaceHandleV1Interface *>;
+        auto wsHandles = std::make_shared<WsMap>();
+
+        auto desktopState = [](VirtualDesktop *d) -> uint32_t {
+            return VirtualDesktopManager::self()->currentDesktop() == d ? 1u : 0u;
+        };
+        auto desktopCoords = [](VirtualDesktop *d) -> QList<uint32_t> {
+            const QPoint p = VirtualDesktopManager::self()->grid().gridCoords(d);
+            return {static_cast<uint32_t>(p.x()), static_cast<uint32_t>(p.y())};
+        };
+
+        // Helper to wire a newly created handle to its desktop.
+        auto wireHandle = [wsm, wsHandles, desktopState, desktopCoords](
+                              VirtualDesktop *d, ExtWorkspaceHandleV1Interface *h) {
+            wsHandles->insert(d, h);
+            connect(h, &ExtWorkspaceHandleV1Interface::activateRequested, wsm, [d] {
+                VirtualDesktopManager::self()->setCurrent(d);
+            });
+            connect(h, &ExtWorkspaceHandleV1Interface::deactivateRequested, wsm, [] {
+                // KWin always has an active desktop; deactivate is a no-op.
+            });
+            connect(h, &ExtWorkspaceHandleV1Interface::removeRequested, wsm, [d] {
+                VirtualDesktopManager::self()->removeVirtualDesktop(d);
+            });
+            connect(d, &VirtualDesktop::nameChanged, wsm, [wsm, h, d] {
+                h->setName(d->name());
+                wsm->done();
+            });
+        };
+
+        // Create handles for all existing virtual desktops.
+        for (VirtualDesktop *d : vdm->desktops()) {
+            auto *h = wsm->createWorkspace();
+            h->setId(d->id());
+            h->setName(d->name());
+            h->setCoordinates(desktopCoords(d));
+            h->setState(desktopState(d));
+            wireHandle(d, h);
+        }
+        wsm->done(); // flush the initial state dump
+
+        // Client requesting a new desktop via create_workspace on the group.
+        connect(wsm->extWorkspaceGroup(), &ExtWorkspaceGroupHandleV1Interface::createWorkspaceRequested,
+                wsm, [vdm](const QString &name) {
+            vdm->createVirtualDesktop(vdm->count(), name);
+        });
+
+        // New desktop added.
+        connect(vdm, &VirtualDesktopManager::desktopAdded, wsm,
+                [wsm, wireHandle, desktopState, desktopCoords](VirtualDesktop *d) {
+            auto *h = wsm->createWorkspace();
+            h->setId(d->id());
+            h->setName(d->name());
+            h->setCoordinates(desktopCoords(d));
+            h->setState(desktopState(d));
+            wireHandle(d, h);
+            wsm->done();
+        });
+
+        // Desktop removed.
+        connect(vdm, &VirtualDesktopManager::desktopRemoved, wsm,
+                [wsm, wsHandles](VirtualDesktop *d) {
+            auto *h = wsHandles->take(d);
+            if (h) {
+                wsm->removeWorkspace(h);
+                wsm->done();
+            }
+        });
+
+        // Active desktop changed — update state on old and new handles.
+        connect(vdm, &VirtualDesktopManager::currentChanged, wsm,
+                [wsm, wsHandles, desktopState](VirtualDesktop *previous, VirtualDesktop *current) {
+            if (previous) {
+                if (auto *h = wsHandles->value(previous)) {
+                    h->setState(desktopState(previous));
+                }
+            }
+            if (auto *h = wsHandles->value(current)) {
+                h->setState(desktopState(current));
+            }
+            wsm->done();
+        });
+
+        // Grid layout changed — resend coordinates for all desktops.
+        connect(vdm, &VirtualDesktopManager::layoutChanged, wsm,
+                [wsm, wsHandles, desktopCoords, vdm](int, int) {
+            for (VirtualDesktop *d : vdm->desktops()) {
+                if (auto *h = wsHandles->value(d)) {
+                    h->setCoordinates(desktopCoords(d));
+                }
+            }
+            wsm->done();
+        });
+
+        // Wire group output changes from the already-enabled outputs.
+        for (OutputInterface *outputIface : std::as_const(m_waylandOutputs)) {
+            wsm->outputAdded(outputIface);
+        }
+        wsm->done();
+    }
 
     Q_EMIT initialized();
 }

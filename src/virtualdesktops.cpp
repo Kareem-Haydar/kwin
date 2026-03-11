@@ -9,7 +9,9 @@
 */
 #include "virtualdesktops.h"
 #include "input.h"
+#if KWIN_BUILD_PLASMA_PROTOCOLS
 #include "wayland/plasmavirtualdesktop.h"
+#endif
 // KDE
 #include <KConfigGroup>
 #include <KGlobalAccel>
@@ -47,6 +49,7 @@ VirtualDesktop::~VirtualDesktop()
     Q_EMIT aboutToBeDestroyed();
 }
 
+#if KWIN_BUILD_PLASMA_PROTOCOLS
 void VirtualDesktopManager::setVirtualDesktopManagement(PlasmaVirtualDesktopManagementInterface *management)
 {
     Q_ASSERT(!m_virtualDesktopManagement);
@@ -116,6 +119,7 @@ void VirtualDesktopManager::setVirtualDesktopManagement(PlasmaVirtualDesktopMana
     m_virtualDesktopManagement->setRows(rows());
     m_virtualDesktopManagement->scheduleDone();
 }
+#endif // KWIN_BUILD_PLASMA_PROTOCOLS
 
 void VirtualDesktop::setId(const QString &id)
 {

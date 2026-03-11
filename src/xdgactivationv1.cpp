@@ -13,7 +13,9 @@
 #include "utils/common.h"
 #include "wayland/clientconnection.h"
 #include "wayland/display.h"
+#if KWIN_BUILD_PLASMA_PROTOCOLS
 #include "wayland/plasmawindowmanagement.h"
+#endif
 #include "wayland/surface.h"
 #include "wayland/xdgactivation_v1.h"
 #include "wayland_server.h"
@@ -36,9 +38,15 @@ XdgActivationV1Integration::XdgActivationV1Integration(XdgActivationV1Interface 
     : QObject(parent)
 {
     connect(Workspace::self(), &Workspace::windowActivated, this, [this](Window *window) {
+#if KWIN_BUILD_PLASMA_PROTOCOLS
         if (!m_activation || !window || m_lastTokenAppId != window->desktopFileName()) {
             return;
         }
+#else
+        if (!window) {
+            return;
+        }
+#endif
         clearFeedback();
     });
 
@@ -79,7 +87,9 @@ QString XdgActivationV1Integration::requestToken(bool isPrivileged, SurfaceInter
     if (showNotify) {
         m_lastToken = newToken;
         m_lastTokenAppId = appId;
+#if KWIN_BUILD_PLASMA_PROTOCOLS
         m_activation = waylandServer()->plasmaActivationFeedback()->createActivation(appId);
+#endif
     }
     if (isPrivileged) {
         // plasmashell doesn't have a valid serial unless it has keyboard focus,
@@ -120,10 +130,12 @@ void XdgActivationV1Integration::activateSurface(SurfaceInterface *surface, cons
 
 void XdgActivationV1Integration::clearFeedback()
 {
+#if KWIN_BUILD_PLASMA_PROTOCOLS
     if (m_activation) {
         Q_EMIT effects->startupRemoved(m_lastToken);
         m_activation.reset();
     }
+#endif
 }
 
 }
