@@ -308,6 +308,18 @@ public:
     QIcon customIcon() const;
 
     /**
+     * @returns whether the client has requested this toplevel be skipped in taskbars.
+     * Set via kde_toplevel_hints_v1.
+     */
+    bool skipTaskbar() const;
+
+    /**
+     * @returns whether the client has requested this toplevel be skipped in window switchers.
+     * Set via kde_toplevel_hints_v1.
+     */
+    bool skipSwitcher() const;
+
+    /**
      * Returns the xdg-toplevel-session associated with this surface, or @c null.
      */
     XdgToplevelSessionV1Interface *session() const;
@@ -438,6 +450,16 @@ Q_SIGNALS:
      * This signal is emitted when the toplevel description has changed
      */
     void descriptionChanged();
+
+    /**
+     * This signal is emitted when the skip-taskbar hint has changed via kde_toplevel_hints_v1.
+     */
+    void skipTaskbarChanged();
+
+    /**
+     * This signal is emitted when the skip-switcher hint has changed via kde_toplevel_hints_v1.
+     */
+    void skipSwitcherChanged();
 
 private:
     std::unique_ptr<XdgToplevelInterfacePrivate> d;

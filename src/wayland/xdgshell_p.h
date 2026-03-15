@@ -161,6 +161,9 @@ public:
     QSize minimumSize = QSize(0, 0);
     QSize maximumSize = QSize(0, 0);
     QIcon customIcon; // managed externally by the xdg_toplevel_icon interface
+    bool skipTaskbar = false; // managed externally by kde_toplevel_hints_v1
+    bool skipSwitcher = false; // managed externally by kde_toplevel_hints_v1
+    bool hasHints = false; // true when a kde_toplevel_hints_v1 object exists
 
 protected:
     void xdg_toplevel_destroy_resource(Resource *resource) override;

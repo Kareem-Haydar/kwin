@@ -59,8 +59,7 @@ class ExtSessionLockSurfaceV1Interface : public QObject, private QtWaylandServer
 {
     Q_OBJECT
 public:
-    explicit ExtSessionLockSurfaceV1Interface(wl_client *client, uint32_t id, uint32_t version,
-                                              SurfaceInterface *surface, OutputInterface *output);
+    explicit ExtSessionLockSurfaceV1Interface(wl_client *client, uint32_t id, uint32_t version, SurfaceInterface *surface, OutputInterface *output);
 
     SurfaceInterface *surface() const;
     OutputInterface *output() const;
@@ -76,6 +75,7 @@ private:
     void ext_session_lock_surface_v1_destroy(Resource *resource) override;
     void ext_session_lock_surface_v1_ack_configure(Resource *resource, uint32_t serial) override;
 
+    QList<quint32> m_pendingSerials;
     SurfaceInterface *m_surface;
     OutputInterface *m_output;
 };

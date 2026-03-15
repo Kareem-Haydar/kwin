@@ -1,0 +1,54 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+    "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.kde.KWin.SessionLock">
+
+    <!-- Ask the compositor to lock the session. The compositor emits LockRequested;
+         the locker application receives it and initiates ext-session-lock-v1. -->
+    <method name="lock"/>
+
+    <!-- Notify the compositor of user activity during lock (grace period).
+         If within the grace period, the compositor emits UnlockAuthorized. -->
+    <method name="notifyUserActivity"/>
+
+    <!-- Inhibit automatic locking. Returns an opaque cookie.
+         Inhibitions are reference-counted by cookie. -->
+    <method name="inhibit">
+      <arg name="who"    type="s" direction="in"  summary="human-readable inhibitor name"/>
+      <arg name="reason" type="s" direction="in"  summary="human-readable reason"/>
+      <arg name="cookie" type="u" direction="out" summary="opaque inhibition cookie"/>
+    </method>
+
+    <!-- Release a previously acquired inhibition. -->
+    <method name="release">
+      <arg name="cookie" type="u" direction="in"/>
+    </method>
+
+    <!-- Whether the session is currently locked. -->
+    <property name="locked"        type="b" access="read"/>
+
+    <!-- Whether auto-lock is currently inhibited. -->
+    <property name="inhibited"     type="b" access="read"/>
+
+    <!-- Milliseconds after lock before the grace period expires. -->
+    <property name="gracePeriodMs" type="i" access="read"/>
+
+    <!-- Emitted when Lock() is called; locker app should initiate ext-session-lock-v1. -->
+    <signal name="lockRequested"/>
+
+    <!-- Emitted when lock state changes. -->
+    <signal name="lockStateChanged">
+      <arg name="locked" type="b"/>
+    </signal>
+
+    <!-- Emitted within the grace period to authorize unlock without authentication. -->
+    <signal name="unlockAuthorized"/>
+
+    <!-- Emitted when the system is about to suspend. Locker should show sleep UI. -->
+    <signal name="prepareSuspend"/>
+
+    <!-- Emitted when the system has resumed from suspend. -->
+    <signal name="awoke"/>
+
+  </interface>
+</node>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="kde_toplevel_hints_v1">
+  <copyright>
+    SPDX-FileCopyrightText: 2026 KWin Authors
+
+    SPDX-License-Identifier: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL
+  </copyright>
+
+  <interface name="kde_toplevel_hints_manager_v1" version="1">
+    <description summary="manager for toplevel behavioral hints">
+      This protocol allows clients to set behavioral hints on xdg-shell
+      toplevels. Hints inform the compositor of the window's intended
+      presentation, but the compositor may ignore or override them based
+      on user configuration or policy.
+
+      This is a KDE-specific protocol. It may be promoted to a cross-desktop
+      standard in the future.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="destroy the manager">
+        Destroy this manager. Hints objects created from it remain valid.
+      </description>
+    </request>
+
+    <request name="get_hints">
+      <description summary="get hints object for a toplevel">
+        Create a hints object for the given toplevel. Only one hints object
+        may exist per toplevel at a time; attempting to create a second is a
+        protocol error.
+      </description>
+      <arg name="id" type="new_id" interface="kde_toplevel_hints_v1"/>
+      <arg name="toplevel" type="object" interface="xdg_toplevel"/>
+    </request>
+
+    <enum name="error">
+      <entry name="already_constructed" value="0"
+             summary="a hints object already exists for this toplevel"/>
+    </enum>
+  </interface>
+
+  <interface name="kde_toplevel_hints_v1" version="1">
+    <description summary="behavioral hints for an xdg-shell toplevel">
+      Hints set by the client on a toplevel. All hints are optional and the
+      compositor may ignore or override them.
+
+      Destroying this object clears all hints previously set through it.
+    </description>
+
+    <request name="destroy" type="destructor">
+      <description summary="destroy the hints object">
+        Destroy the hints object. All hints previously set through this object
+        are cleared.
+      </description>
+    </request>
+
+    <request name="set_skip_taskbar">
+      <description summary="hint to skip the taskbar">
+        Request that this toplevel not appear in taskbars or dock window lists.
+        Suitable for panels, OSDs, and other non-application windows.
+
+        A value of zero clears the hint.
+      </description>
+      <arg name="skip" type="uint" summary="non-zero to skip the taskbar"/>
+    </request>
+
+    <request name="set_skip_switcher">
+      <description summary="hint to skip the window switcher">
+        Request that this toplevel not appear in window switchers (e.g. Alt+Tab).
+
+        A value of zero clears the hint.
+      </description>
+      <arg name="skip" type="uint" summary="non-zero to skip the switcher"/>
+    </request>
+  </interface>
+
+</protocol>

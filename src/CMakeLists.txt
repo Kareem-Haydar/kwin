@@ -96,6 +96,7 @@ target_sources(kwin PRIVATE
     hide_cursor_spy.cpp
     idle_inhibition.cpp
     idledetector.cpp
+    idlemanager.cpp
     input.cpp
     input_event.cpp
     input_event_spy.cpp
@@ -112,6 +113,7 @@ target_sources(kwin PRIVATE
     killwindow.cpp
     kscreenintegration.cpp
     layers.cpp
+    extsessionlockv1dbusinterface.cpp
     extsessionlockv1integration.cpp
     extsessionlockv1window.cpp
     layershellv1integration.cpp
@@ -329,6 +331,7 @@ qt_add_dbus_adaptor(kwin_dbus_SRCS ${kwin_effects_dbus_xml} effect/effecthandler
 qt_add_dbus_adaptor(kwin_dbus_SRCS org.kde.KWin.VirtualDesktopManager.xml dbusinterface.h KWin::VirtualDesktopManagerDBusInterface)
 qt_add_dbus_adaptor(kwin_dbus_SRCS org.kde.KWin.Session.xml sm.h KWin::SessionManager)
 qt_add_dbus_adaptor(kwin_dbus_SRCS org.kde.KWin.Plugins.xml dbusinterface.h KWin::PluginManagerDBusInterface)
+qt_add_dbus_adaptor(kwin_dbus_SRCS org.kde.KWin.SessionLock.xml extsessionlockv1dbusinterface.h KWin::ExtSessionLockV1DBusInterface)
 qt_add_dbus_interface(kwin_dbus_SRCS org.freedesktop.DBus.Properties.xml dbusproperties_interface)
 
 set_source_files_properties(net.hadess.SensorProxy.xml PROPERTIES

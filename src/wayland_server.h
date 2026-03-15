@@ -59,6 +59,7 @@ class OutputOrderV1Interface;
 class XdgDialogWmV1Interface;
 class ExternalBrightnessV1;
 class XdgToplevelTagManagerV1;
+class KdeToplevelHintsManagerV1;
 class PointerWarpV1;
 
 class Window;
@@ -78,6 +79,7 @@ class ColorRepresentationManagerV1;
 class BackendOutput;
 class ExtBackgroundEffectManagerV1;
 class ExtSessionLockV1Integration;
+class IdleManager;
 
 class KWIN_EXPORT WaylandServer : public QObject
 {
@@ -148,6 +150,12 @@ public:
     {
         return m_keyboardShortcutsInhibitManager;
     }
+
+    IdleManager *idleManager() const
+    {
+        return m_idleManager;
+    }
+
 #if KWIN_BUILD_X11
     XwaylandShellV1Interface *xwaylandShell() const
     {
@@ -216,8 +224,7 @@ public:
      * Struct containing information for a created Wayland connection through a
      * socketpair.
      */
-    struct SocketPairConnection
-    {
+    struct SocketPairConnection {
         /**
          * ServerSide Connection
          */
@@ -249,6 +256,11 @@ public:
     ExtBackgroundEffectManagerV1 *backgroundEffectManager() const;
 
     void setRenderBackend(RenderBackend *backend);
+
+    OutputInterface *findOutputInterface(LogicalOutput *output) const
+    {
+        return m_waylandOutputs.value(output);
+    }
 
 Q_SIGNALS:
     void windowCreated(KWin::Window *);
@@ -335,10 +347,12 @@ private:
     FifoManagerV1 *m_fifoManager = nullptr;
     SinglePixelBufferManagerV1 *m_singlePixelBuffer = nullptr;
     XdgToplevelTagManagerV1 *m_toplevelTag = nullptr;
+    KdeToplevelHintsManagerV1 *m_toplevelHints = nullptr;
     ColorRepresentationManagerV1 *m_colorRepresentation = nullptr;
     PointerWarpV1 *m_pointerWarp = nullptr;
     ExtBackgroundEffectManagerV1 *m_backgroundEffect = nullptr;
     ExtSessionLockV1Integration *m_extSessionLockIntegration = nullptr;
+    IdleManager *m_idleManager = nullptr;
     KWIN_SINGLETON(WaylandServer)
 };
 

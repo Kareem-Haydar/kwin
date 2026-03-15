@@ -15,8 +15,10 @@
 #include "core/drmdevice.h"
 #include "core/outputbackend.h"
 #include "core/session.h"
+#include "extsessionlockv1dbusinterface.h"
 #include "extsessionlockv1integration.h"
 #include "idle_inhibition.h"
+#include "idlemanager.h"
 #include "inputpanelv1integration.h"
 #include "layershellv1integration.h"
 #include "layershellv1window.h"
@@ -70,6 +72,7 @@
 #include "wayland/plasmawindowmanagement.h"
 #include "wayland/server_decoration_palette.h"
 #endif
+#include "wayland/kdetoplevelhintsv1.h"
 #include "wayland/pointerconstraints_v1.h"
 #include "wayland/pointergestures_v1.h"
 #include "wayland/pointerwarp_v1.h"
@@ -429,6 +432,7 @@ bool WaylandServer::init()
     m_dataDeviceManager = new DataDeviceManagerInterface(m_display, m_display);
     new DataControlDeviceManagerV1Interface(m_display, m_display);
     new CursorShapeManagerV1Interface(m_display, m_display);
+    m_idleManager = new IdleManager(this);
 
     const auto kwinConfig = kwinApp()->config();
     if (kwinConfig->group(QStringLiteral("Wayland")).readEntry("EnablePrimarySelection", true)) {
@@ -464,27 +468,30 @@ bool WaylandServer::init()
 
     m_windowManagement = new PlasmaWindowManagementInterface(m_display, m_display);
     m_windowManagement->setShowingDesktopState(PlasmaWindowManagementInterface::ShowingDesktopState::Disabled);
-    connect(m_windowManagement, &PlasmaWindowManagementInterface::requestChangeShowingDesktop, this, [](PlasmaWindowManagementInterface::ShowingDesktopState state) {
-        if (!workspace()) {
-            return;
-        }
-        bool set = false;
-        switch (state) {
-        case PlasmaWindowManagementInterface::ShowingDesktopState::Disabled:
-            set = false;
-            break;
-        case PlasmaWindowManagementInterface::ShowingDesktopState::Enabled:
-            set = true;
-            break;
-        default:
-            Q_UNREACHABLE();
-            break;
-        }
-        if (set == workspace()->showingDesktop()) {
-            return;
-        }
-        workspace()->setShowingDesktop(set);
-    });
+    connect(m_windowManagement,
+            &PlasmaWindowManagementInterface::requestChangeShowingDesktop,
+            this,
+            [](PlasmaWindowManagementInterface::ShowingDesktopState state) {
+                if (!workspace()) {
+                    return;
+                }
+                bool set = false;
+                switch (state) {
+                case PlasmaWindowManagementInterface::ShowingDesktopState::Disabled:
+                    set = false;
+                    break;
+                case PlasmaWindowManagementInterface::ShowingDesktopState::Enabled:
+                    set = true;
+                    break;
+                default:
+                    Q_UNREACHABLE();
+                    break;
+                }
+                if (set == workspace()->showingDesktop()) {
+                    return;
+                }
+                workspace()->setShowingDesktop(set);
+            });
 
     m_virtualDesktopManagement = new PlasmaVirtualDesktopManagementInterface(m_display, m_display);
     m_windowManagement->setPlasmaVirtualDesktopManagementInterface(m_virtualDesktopManagement);
@@ -560,6 +567,7 @@ bool WaylandServer::init()
     m_fifoManager = new FifoManagerV1(m_display, m_display);
     m_singlePixelBuffer = new SinglePixelBufferManagerV1(m_display, m_display);
     m_toplevelTag = new XdgToplevelTagManagerV1(m_display, m_display);
+    m_toplevelHints = new KdeToplevelHintsManagerV1(m_display, m_display);
     m_colorRepresentation = new ColorRepresentationManagerV1(m_display, m_display);
     m_pointerWarp = new PointerWarpV1(m_display, m_display);
     m_backgroundEffect = new ExtBackgroundEffectManagerV1(m_display, m_display);
@@ -596,14 +604,11 @@ XdgExportedSurface *WaylandServer::exportAsForeign(SurfaceInterface *surface)
 
 void WaylandServer::initWorkspace()
 {
-    connect(m_extSessionLockIntegration, &ExtSessionLockV1Integration::lockStateChanged, this, &WaylandServer::onLockStateChanged);
     auto inputPanelV1Integration = new InputPanelV1Integration(this);
-    connect(inputPanelV1Integration, &InputPanelV1Integration::windowCreated,
-            this, &WaylandServer::registerWindow);
+    connect(inputPanelV1Integration, &InputPanelV1Integration::windowCreated, this, &WaylandServer::registerWindow);
 
     auto xdgShellIntegration = new XdgShellIntegration(this);
-    connect(xdgShellIntegration, &XdgShellIntegration::windowCreated,
-            this, &WaylandServer::registerXdgGenericWindow);
+    connect(xdgShellIntegration, &XdgShellIntegration::windowCreated, this, &WaylandServer::registerXdgGenericWindow);
 
     auto setPingTimeout = [xdgShellIntegration] {
         xdgShellIntegration->setPingTimeout(std::chrono::milliseconds(options->killPingTimeout()));
@@ -612,17 +617,16 @@ void WaylandServer::initWorkspace()
     setPingTimeout();
 
     auto layerShellV1Integration = new LayerShellV1Integration(this);
-    connect(layerShellV1Integration, &LayerShellV1Integration::windowCreated,
-            this, &WaylandServer::registerWindow);
+    connect(layerShellV1Integration, &LayerShellV1Integration::windowCreated, this, &WaylandServer::registerWindow);
 
     m_extSessionLockIntegration = new ExtSessionLockV1Integration(this);
-    connect(m_extSessionLockIntegration, &ExtSessionLockV1Integration::windowCreated,
-            this, &WaylandServer::registerWindow);
+    connect(m_extSessionLockIntegration, &ExtSessionLockV1Integration::lockStateChanged, this, &WaylandServer::onLockStateChanged);
+    connect(m_extSessionLockIntegration, &ExtSessionLockV1Integration::windowCreated, this, &WaylandServer::registerWindow);
+    new ExtSessionLockV1DBusInterface(m_extSessionLockIntegration, this);
 
     if (qEnvironmentVariableIntValue("KWIN_WAYLAND_SUPPORT_XX_PIP_V1") == 1) {
         auto pipV1Integration = new XXPipV1Integration(this);
-        connect(pipV1Integration, &XXPipV1Integration::windowCreated,
-                this, &WaylandServer::registerWindow);
+        connect(pipV1Integration, &XXPipV1Integration::windowCreated, this, &WaylandServer::registerWindow);
     }
 
     new KeyStateInterface(m_display, m_display);
@@ -632,7 +636,8 @@ void WaylandServer::initWorkspace()
 
     if (m_windowManagement) {
         connect(workspace(), &Workspace::showingDesktopChanged, this, [this](bool set) {
-            m_windowManagement->setShowingDesktopState(set ? PlasmaWindowManagementInterface::ShowingDesktopState::Enabled : PlasmaWindowManagementInterface::ShowingDesktopState::Disabled);
+            m_windowManagement->setShowingDesktopState(set ? PlasmaWindowManagementInterface::ShowingDesktopState::Enabled
+                                                           : PlasmaWindowManagementInterface::ShowingDesktopState::Disabled);
         });
 
         connect(workspace(), &Workspace::workspaceInitialized, this, [this] {
@@ -700,8 +705,7 @@ void WaylandServer::initWorkspace()
         };
 
         // Helper to wire a newly created handle to its desktop.
-        auto wireHandle = [wsm, wsHandles, desktopState, desktopCoords](
-                              VirtualDesktop *d, ExtWorkspaceHandleV1Interface *h) {
+        auto wireHandle = [wsm, wsHandles, desktopState, desktopCoords](VirtualDesktop *d, ExtWorkspaceHandleV1Interface *h) {
             wsHandles->insert(d, h);
             connect(h, &ExtWorkspaceHandleV1Interface::activateRequested, wsm, [d] {
                 VirtualDesktopManager::self()->setCurrent(d);
@@ -730,14 +734,12 @@ void WaylandServer::initWorkspace()
         wsm->done(); // flush the initial state dump
 
         // Client requesting a new desktop via create_workspace on the group.
-        connect(wsm->extWorkspaceGroup(), &ExtWorkspaceGroupHandleV1Interface::createWorkspaceRequested,
-                wsm, [vdm](const QString &name) {
+        connect(wsm->extWorkspaceGroup(), &ExtWorkspaceGroupHandleV1Interface::createWorkspaceRequested, wsm, [vdm](const QString &name) {
             vdm->createVirtualDesktop(vdm->count(), name);
         });
 
         // New desktop added.
-        connect(vdm, &VirtualDesktopManager::desktopAdded, wsm,
-                [wsm, wireHandle, desktopState, desktopCoords](VirtualDesktop *d) {
+        connect(vdm, &VirtualDesktopManager::desktopAdded, wsm, [wsm, wireHandle, desktopState, desktopCoords](VirtualDesktop *d) {
             auto *h = wsm->createWorkspace();
             h->setId(d->id());
             h->setName(d->name());
@@ -748,8 +750,7 @@ void WaylandServer::initWorkspace()
         });
 
         // Desktop removed.
-        connect(vdm, &VirtualDesktopManager::desktopRemoved, wsm,
-                [wsm, wsHandles](VirtualDesktop *d) {
+        connect(vdm, &VirtualDesktopManager::desktopRemoved, wsm, [wsm, wsHandles](VirtualDesktop *d) {
             auto *h = wsHandles->take(d);
             if (h) {
                 wsm->removeWorkspace(h);
@@ -758,8 +759,7 @@ void WaylandServer::initWorkspace()
         });
 
         // Active desktop changed — update state on old and new handles.
-        connect(vdm, &VirtualDesktopManager::currentChanged, wsm,
-                [wsm, wsHandles, desktopState](VirtualDesktop *previous, VirtualDesktop *current) {
+        connect(vdm, &VirtualDesktopManager::currentChanged, wsm, [wsm, wsHandles, desktopState](VirtualDesktop *previous, VirtualDesktop *current) {
             if (previous) {
                 if (auto *h = wsHandles->value(previous)) {
                     h->setState(desktopState(previous));
@@ -772,8 +772,7 @@ void WaylandServer::initWorkspace()
         });
 
         // Grid layout changed — resend coordinates for all desktops.
-        connect(vdm, &VirtualDesktopManager::layoutChanged, wsm,
-                [wsm, wsHandles, desktopCoords, vdm](int, int) {
+        connect(vdm, &VirtualDesktopManager::layoutChanged, wsm, [wsm, wsHandles, desktopCoords, vdm](int, int) {
             for (VirtualDesktop *d : vdm->desktops()) {
                 if (auto *h = wsHandles->value(d)) {
                     h->setCoordinates(desktopCoords(d));

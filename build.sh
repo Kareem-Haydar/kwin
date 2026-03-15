@@ -110,5 +110,6 @@ if $do_run; then
     cd bin
     log "Starting nested KWin session ..."
     exec env QT_PLUGIN_PATH="$(pwd):${QT_PLUGIN_PATH:-}" \
+        QT_LOGGING_RULES="kwin_*=true" \
         dbus-run-session ./kwin_wayland --xwayland konsole
 fi

@@ -1958,6 +1958,16 @@ void Window::setupForeignToplevelHandle()
     m_foreignToplevelHandle->setMaximized(maximizeMode() == MaximizeFull);
     m_foreignToplevelHandle->setFullscreen(isFullScreen());
 
+    auto updateOutputs = [this]() {
+        QList<OutputInterface *> ifaces;
+        if (OutputInterface *iface = waylandServer()->findOutputInterface(output())) {
+            ifaces << iface;
+        }
+        m_foreignToplevelHandle->setOutputs(ifaces);
+    };
+    updateOutputs();
+    connect(this, &Window::outputChanged, m_foreignToplevelHandle, updateOutputs);
+
     connect(this, &Window::captionChanged, m_foreignToplevelHandle, [this]() {
         m_foreignToplevelHandle->setTitle(caption());
     });

@@ -29,6 +29,7 @@ ecm_add_qtwayland_server_protocol_kde(WaylandProtocols_xml
 
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/drm.xml
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/frog-color-management-v1.xml
+        ${PROJECT_SOURCE_DIR}/src/wayland/protocols/kde-toplevel-hints-v1.xml
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/wlr-foreign-toplevel-management-unstable-v1.xml
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/wlr-layer-shell-unstable-v1.xml
         ${PROJECT_SOURCE_DIR}/src/wayland/protocols/xx-pip-v1.xml
@@ -123,6 +124,7 @@ target_sources(kwin PRIVATE
     drmlease_v1.cpp
     externalbrightness_v1.cpp
     extforeigntoplevellist_v1.cpp
+    kdetoplevelhintsv1.cpp
     extsessionlock_v1.cpp
     extworkspace_v1.cpp
     fifo_v1.cpp

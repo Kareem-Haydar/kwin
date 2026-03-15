@@ -55,27 +55,23 @@ void ExtSessionLockV1Interface::sendFinished()
 void ExtSessionLockV1Interface::ext_session_lock_v1_destroy(Resource *resource)
 {
     if (m_locked) {
-        wl_resource_post_error(resource->handle, error_invalid_destroy,
-                               "destroying a locked ext_session_lock_v1 is not allowed");
+        wl_resource_post_error(resource->handle, error_invalid_destroy, "destroying a locked ext_session_lock_v1 is not allowed");
         return;
     }
     wl_resource_destroy(resource->handle);
 }
 
-void ExtSessionLockV1Interface::ext_session_lock_v1_get_lock_surface(Resource *resource, uint32_t id,
-                                                                     ::wl_resource *surface, ::wl_resource *output)
+void ExtSessionLockV1Interface::ext_session_lock_v1_get_lock_surface(Resource *resource, uint32_t id, ::wl_resource *surface, ::wl_resource *output)
 {
-    auto *lockSurface = new ExtSessionLockSurfaceV1Interface(resource->client(), id, resource->version(),
-                                                             SurfaceInterface::get(surface),
-                                                             OutputInterface::get(output));
+    auto *lockSurface =
+        new ExtSessionLockSurfaceV1Interface(resource->client(), id, resource->version(), SurfaceInterface::get(surface), OutputInterface::get(output));
     Q_EMIT lockSurfaceRequested(lockSurface);
 }
 
 void ExtSessionLockV1Interface::ext_session_lock_v1_unlock_and_destroy(Resource *resource)
 {
     if (!m_locked) {
-        wl_resource_post_error(resource->handle, error_invalid_unlock,
-                               "unlock requested but locked event was never sent");
+        wl_resource_post_error(resource->handle, error_invalid_unlock, "unlock requested but locked event was never sent");
         return;
     }
     Q_EMIT unlockRequested();
@@ -84,8 +80,11 @@ void ExtSessionLockV1Interface::ext_session_lock_v1_unlock_and_destroy(Resource 
 
 // --- ExtSessionLockSurfaceV1Interface ---
 
-ExtSessionLockSurfaceV1Interface::ExtSessionLockSurfaceV1Interface(wl_client *client, uint32_t id, uint32_t version,
-                                                                   SurfaceInterface *surface, OutputInterface *output)
+ExtSessionLockSurfaceV1Interface::ExtSessionLockSurfaceV1Interface(wl_client *client,
+                                                                   uint32_t id,
+                                                                   uint32_t version,
+                                                                   SurfaceInterface *surface,
+                                                                   OutputInterface *output)
     : QtWaylandServer::ext_session_lock_surface_v1(client, id, version)
     , m_surface(surface)
     , m_output(output)
@@ -105,6 +104,7 @@ OutputInterface *ExtSessionLockSurfaceV1Interface::output() const
 void ExtSessionLockSurfaceV1Interface::sendConfigure(uint32_t serial, uint32_t width, uint32_t height)
 {
     send_configure(resource()->handle, serial, width, height);
+    m_pendingSerials.append(serial);
 }
 
 void ExtSessionLockSurfaceV1Interface::ext_session_lock_surface_v1_destroy_resource(Resource *resource)
@@ -120,7 +120,15 @@ void ExtSessionLockSurfaceV1Interface::ext_session_lock_surface_v1_destroy(Resou
 
 void ExtSessionLockSurfaceV1Interface::ext_session_lock_surface_v1_ack_configure(Resource *resource, uint32_t serial)
 {
-    // TODO: validate serial before emitting signal
+    if (!m_pendingSerials.contains(serial)) {
+        return;
+    }
+
+    while (!m_pendingSerials.empty()) {
+        uint32_t front = m_pendingSerials.takeFirst();
+        if (front == serial)
+            break;
+    }
 
     Q_EMIT configureAcknowledged(serial);
 }

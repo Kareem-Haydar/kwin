@@ -640,6 +640,16 @@ QIcon XdgToplevelInterface::customIcon() const
     return d->customIcon;
 }
 
+bool XdgToplevelInterface::skipTaskbar() const
+{
+    return d->skipTaskbar;
+}
+
+bool XdgToplevelInterface::skipSwitcher() const
+{
+    return d->skipSwitcher;
+}
+
 XdgToplevelSessionV1Interface *XdgToplevelInterface::session() const
 {
     return d->session;

@@ -578,6 +578,18 @@ XdgToplevelWindow::XdgToplevelWindow(XdgToplevelInterface *shellSurface)
     connect(shellSurface, &XdgToplevelInterface::descriptionChanged, this, [this]() {
         setDescription(m_shellSurface->description());
     });
+    connect(shellSurface, &XdgToplevelInterface::skipTaskbarChanged, this, [this]() {
+        if (m_isInitialized) {
+            setSkipTaskbar(rules()->checkSkipTaskbar(m_shellSurface->skipTaskbar(), false));
+            updateWindowRules(Rules::SkipTaskbar);
+        }
+    });
+    connect(shellSurface, &XdgToplevelInterface::skipSwitcherChanged, this, [this]() {
+        if (m_isInitialized) {
+            setSkipSwitcher(rules()->checkSkipSwitcher(m_shellSurface->skipSwitcher(), false));
+            updateWindowRules(Rules::SkipSwitcher);
+        }
+    });
 }
 
 XdgToplevelWindow::~XdgToplevelWindow()
@@ -1301,7 +1313,7 @@ bool XdgToplevelWindow::initialSkipSwitcher(const std::optional<XdgToplevelSessi
             return skipSwitcher.value();
         }
     }
-    return skipSwitcher();
+    return m_shellSurface->skipSwitcher();
 }
 
 bool XdgToplevelWindow::initialSkipPager(const std::optional<XdgToplevelSessionData> &session) const
@@ -1321,7 +1333,7 @@ bool XdgToplevelWindow::initialSkipTaskbar(const std::optional<XdgToplevelSessio
             return skipTaskbar.value();
         }
     }
-    return skipTaskbar();
+    return m_shellSurface->skipTaskbar();
 }
 
 MaximizeMode XdgToplevelWindow::initialMaximizeMode(const std::optional<XdgToplevelSessionData> &session) const
